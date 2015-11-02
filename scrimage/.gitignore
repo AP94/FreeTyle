@@ -1,0 +1,25 @@
+*.class
+*.log
+.idea
+scrimage.iml
+*.iml
+filters.md
+pom.xml.versionsBackup
+
+# sbt specific
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+credentials.sbt
+
+# Scala-IDE specific
+.scala_dependencies
+.cache
+.classpath
+.project
+
+# Temporary files
+*~

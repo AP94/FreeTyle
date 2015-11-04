@@ -4,5 +4,8 @@
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="lib" path="/Users/apinson/Desktop/FreeTyle/scala-parser-combinators_2.11-1.0.4.jar"/>
+	<classpathentry kind="lib" path="/Users/apinson/Desktop/FreeTyle/scrimage/scrimage-core"/>
+	<classpathentry kind="lib" path="/Users/apinson/Desktop/FreeTyle/scrimage/scrimage-filters"/>
+	<classpathentry kind="lib" path="/Users/apinson/Desktop/FreeTyle/scrimage/scrimage-io-extra"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

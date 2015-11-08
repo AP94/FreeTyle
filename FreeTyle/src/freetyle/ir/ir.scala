@@ -21,7 +21,7 @@ class Point(xCoord: Int, yCoord: Int) {
  */
 class Tile(tileName: TileName, url: String, edgeUrl: String) {
   val name = tileName
-  val file = new java.io.File(url)
+  val fileName = url
   if (edgeUrl == "") {
      val edgeFile = null
   } else {
@@ -35,7 +35,8 @@ class Tile(tileName: TileName, url: String, edgeUrl: String) {
  * Freeform tiles never have an edge.
  */
 class FreeTile(tileName: TileName, url: String, anchorPoint: Point){
-  
+  val name = tileName
+  val file = new java.io.File(url)
   val anchor = anchorPoint
   
 }
@@ -66,13 +67,13 @@ class Layer(prec: LayerNum, as: List[Area], tps: List[(FreeTile, Point)]) {
 }
 
 /**
- * Maps are given a set size and are composed of layers. The origin specifies the orientation of the map.
- * Maps do not have names, as only one will be generated per program
+ * Maps are given a set size and name and are composed of layers. The origin specifies the orientation of the map.
  */
-class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
+class Map(w: Int, h: Int, orig: Origin, lays: List[Layer], mapName: String) {
   val width = w
   val height = h
   val origin = orig
   val layers = lays
+  val name = mapName
 }
 

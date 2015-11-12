@@ -1,5 +1,5 @@
 package freetyle.ir
-import scala.collection.mutable;
+import scala.collection.mutable
 
 import scala.language.postfixOps
 
@@ -42,12 +42,12 @@ class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(ti
 class FreeTile(tileName: TileName, url: String, anchorPoint: Point) extends Tile(tileName) {
   val file = new java.io.File(url)
   val anchor = anchorPoint
-  
 }
 
 /**
  * The Origin specifies how the map is oriented.
  */
+
 abstract sealed class Origin
 case object topLeft extends Origin
 case object bottomLeft extends Origin
@@ -56,22 +56,30 @@ abstract sealed class MapType
 case object basic extends MapType
 case object debug extends MapType
 
+
+class Instr(t: TileName){
+  val tile = t
+}
+
 /**
  * Areas are (currently) specified by right angles and will be filled by a specified tile.
  */
-class Area(t: TileName, pointPairs: List[(Point, Point)]){
-  val tile = t
+//TODO: add shapes
+class Area(t: TileName, pointPairs: List[(Point, Point)]) extends Instr(t){
   val zones = pointPairs
+}
+
+class PlacePoint(t: TileName, p: List[Point]) extends Instr(t){
+  val points = p
 }
 
 /**
  * Layers contain areas to be tiled and/or a list of FreeTiles and where to place them.
  * Layer precedence is given by a number, where the highest number specifies the topmost layer.
  */
-class Layer(prec: LayerNum, as: List[Area], tps: List[(TileName, Point)]) {
+class Layer(prec: LayerNum, is: List[Instr]) {
   val precedence = prec
-  val areas = as
-  val tilePoints = tps
+  val instructions = is
 }
 
 /**
@@ -84,13 +92,20 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
   val layers = lays
 }
 
-class Table(list: List[TileName, Tile]) {
+class Table(list: List[(TileName, Tile)]) {
   val hash = new mutable.HashMap[TileName, Tile]
-  // Hash Construction Goes Here
+  for ((tileName, tile) <- list) {
+    if (hash.contains(tileName) == false) {
+      hash(tileName) = tile
+    } else {
+      hash("error") = new Tile("error")
+    }
+  }
+    
 }
 
-class AST(tTable: Table, m: Map, gens: List[(MapType, String)]) {
-  val tileTable = tTable
+class AST(tList: List[(TileName, Tile)], m: Map, gens: List[(MapType, String)]) {
+  val tileTable = new Table(tList)
   val map = m
   val genCalls = gens
 }

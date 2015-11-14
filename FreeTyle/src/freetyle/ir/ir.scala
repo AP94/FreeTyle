@@ -21,12 +21,13 @@ class Point(xCoord: Int, yCoord: Int) {
  *   Basic tiles also may have edges, while freeform tiles cannot.
  */
 
-class Tile(tileName: TileName) {
+class Tile(tileName: TileName, url: String) {
   val name = tileName
+  val file = new java.io.File(url)
 }
 
-class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(tileName) {
-  val fileName = url
+class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(tileName, url) {
+  
   if (edgeUrl == "") {
      val edgeFile = null
   } else {
@@ -39,8 +40,7 @@ class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(ti
  * Freeform tiles always have an anchorPoint; the standard is the top left of the image file
  * Freeform tiles never have an edge.
  */
-class FreeTile(tileName: TileName, url: String, anchorPoint: Point) extends Tile(tileName) {
-  val file = new java.io.File(url)
+class FreeTile(tileName: TileName, url: String, anchorPoint: Point) extends Tile(tileName, url) {
   val anchor = anchorPoint
 }
 
@@ -80,6 +80,12 @@ class PlacePoint(t: TileName, p: List[Point]) extends Instr(t){
 class Layer(prec: LayerNum, is: List[Instr]) {
   val precedence = prec
   val instructions = is
+  
+  // Sort so that the fill instructions (Area) come before the place instructions (PlacePoint)
+  def sortInstrs(instrs: List[Instr]): List[Instr] = {
+  // Bubblesort
+    
+  }
 }
 
 /**
@@ -89,7 +95,35 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
   val width = w
   val height = h
   val origin = orig
-  val layers = lays
+  val layers = layerMergeSort(lays)
+  
+  def layerMergeSort (layers: List[Layer]): List[Layer] = {
+      if(layers.length == 1 || layers.length == 0) {return layers}
+      else {
+        val mid = layers.length/2
+        val split = layers.splitAt(mid)
+        val lhs = layerMergeSort(split._1)
+        val rhs = layerMergeSort(split._2)
+        return merge(lhs, rhs)
+      }
+    }
+    
+    def merge(l1: List[Layer], l2: List[Layer]): List[Layer] = {
+      if (l1.length == 0) {return l2}
+      if (l2.length == 0) {return l1}
+      
+      val headA = l1.head
+      val headB = l2.head
+      if(headA.precedence < headB.precedence) {
+        return headA :: headB :: merge(l1.tail, l2.tail)
+      } else if(headB.precedence < headA.precedence) {
+        return headB :: headA :: merge(l1.tail, l2.tail)
+      }
+      else {
+        //error handling for equal precedence
+        return List()
+      }
+    }
 }
 
 class Table(list: List[(TileName, Tile)]) {
@@ -98,7 +132,7 @@ class Table(list: List[(TileName, Tile)]) {
     if (hash.contains(tileName) == false) {
       hash(tileName) = tile
     } else {
-      hash("error") = new Tile("error")
+      hash("error") = new Tile("error", "")
     }
   }
     

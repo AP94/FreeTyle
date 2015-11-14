@@ -18,10 +18,38 @@ import java.awt.geom._
 private object semantics {
   import freetyle.{semantics => lib}
   
-  type loadedMap = mutable.HashMap[TileName, Boolean];
   type tileHashMap = mutable.HashMap[TileName, BufferedImage];
   
-    def makeMap(map: Map) {
+    def loadAST(ast: AST) {
+      val astHash = ast.tileTable.hash
+      val tileHash = new tileHashMap
+      // Only do the work if there are maps to generate
+      // (Potentially change this if errors won't be caught)
+      if (ast.genCalls.length != 0) {
+        // Check if the "error" case happened (not sure how to implement)
+        if (astHash.contains("error")) {
+          //error handling
+        } else {
+          // Make the tile hashmap from the ast's tiletable
+          for (tName <- astHash.keys) {
+            tileHash(tName) = ImageIO.read(astHash(tName).file)
+          }
+        }
+        for (genCall <- ast.genCalls) {
+          if (genCall._1 == basic) {
+            makeMap(ast.map, tileHash, genCall._2)
+          } else {
+            makeDebugMap(ast.map, tileHash, genCall._2)
+          }
+        }
+      }
+      if (ast.map.layers.length == 0) {
+        //error handling for empty list of layers (how?)
+      }
+    }
+   
+  
+    def makeMap(map: Map, tiles: tileHashMap, mName: String) {
     val layers = map.layers
     val canvas = new BufferedImage(map.width, map.height, BufferedImage.TYPE_INT_RGB)
     var graphics = canvas.createGraphics()
@@ -30,21 +58,19 @@ private object semantics {
     graphics.setColor(Color.WHITE)
     graphics.fillRect(0, 0, canvas.getWidth, canvas.getHeight)
     
-    // make the hashmaps
-    val loaded = new loadedMap
-    val tiles = new tileHashMap
     
     for(layer <- layers) {
+      //Each layer has a list of instructions
+      //Write onto the canvas given the list of instructions
+      
+      
+      
+      
       for(tilePoint <- layer.tilePoints) {
         val tile = tilePoint._1
         val pos = tilePoint._2
         val anch = tile.anchor
-        // If the tile hasn't been loaded into an image, make an image file
-        // and put it in the tiles hashmap
-        if (!loaded(tile.name)) {
-          tiles(tile.name) = ImageIO.read(tile.file)
-          loaded(tile.name) = true
-        }
+
         // Later: for clipping purposes
         val tWidth = tiles(tile.name).getWidth()
         val tHeight = tiles(tile.name).getHeight()
@@ -61,12 +87,13 @@ private object semantics {
     graphics.dispose()
     graphics = canvas.createGraphics()
     }
+    
     graphics.dispose()
     val outputfile = new File(map.name + ".png")
     ImageIO.write(canvas, "png", outputfile)
   }
   
-  def makeDebugMap(map: Map) {
+  def makeDebugMap(map: Map, tiles: tileHashMap, mName: String) {
     
   }
 }

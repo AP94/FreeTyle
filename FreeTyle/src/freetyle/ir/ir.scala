@@ -1,6 +1,6 @@
 package freetyle.ir
 import scala.collection.mutable
-
+import util.control.Breaks._
 import scala.language.postfixOps
 
 /**
@@ -58,7 +58,7 @@ case object debug extends MapType
 
 
 class Instr(t: TileName){
-  val tile = t
+  val tileName = t
 }
 
 /**
@@ -79,12 +79,41 @@ class PlacePoint(t: TileName, p: List[Point]) extends Instr(t){
  */
 class Layer(prec: LayerNum, is: List[Instr]) {
   val precedence = prec
-  val instructions = is
+  val instructions = sortInstrs(is)
   
   // Sort so that the fill instructions (Area) come before the place instructions (PlacePoint)
   def sortInstrs(instrs: List[Instr]): List[Instr] = {
   // Bubblesort
-    
+    if (instrs.length == 0 || instrs.length == 1) {return instrs}
+    else {
+      // Start at the end of the list
+      var i = instrs.length - 1
+      do {
+        var j = i
+        instrs(i) match {
+          // Move any Area calls up
+          case a: Area => do {
+                               // Backtrack from i until the first PlacePoint is found
+                               j -= 1
+                               instrs(j) match {
+                                 case a: Area => null
+                                 case p: PlacePoint => {
+                                   // Swap the PlacePoint with the Area
+                                   var temp = instrs(i)
+                                   instrs.updated(i, instrs(j))
+                                   instrs.updated(j, temp)
+                                 }
+                               }
+                              } while (j > 0)
+          case p: PlacePoint => null
+      }
+        // If we hit the beginning with j, then the list only has Areas
+        // Or the list is sorted so that all the preceeding values are Areas
+        if (j == 0) {return instrs}
+        i -= 1
+      } while (i > 0)
+        return instrs
+    }
   }
 }
 

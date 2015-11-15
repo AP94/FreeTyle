@@ -61,7 +61,7 @@ object parser extends JavaTokenParsers with PackratParsers{
       
       //TODO: Fix this?
   lazy val layer: PackratParser[Layer] = (
-      rword("layer")~>wholeNumber~rword("=")~rword("{")~(instr.+)~rword("}") ^^ {case num~"="~"{"~is~"}" => new Layer(num, is)}
+      rword("layer")~>wholeNumber~rword("=")~rword("{")~(instr.+)~rword("}") ^^ {case num~"="~"{"~is~"}" => new Layer(num.toInt, is)}
       )
       
   lazy val instr: PackratParser[Instr] = (

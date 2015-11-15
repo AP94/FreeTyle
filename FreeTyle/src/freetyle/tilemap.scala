@@ -15,8 +15,8 @@ object tilemap {
     case (Some(mapFile)) =>
       val mapCode = io.Source.fromFile(mapFile).mkString
       parser(mapCode) match {
-        case parser.Success(map, _) =>
-          
+        case parser.Success(ast, _) =>
+          loadAST(ast)
       }
   }
 }

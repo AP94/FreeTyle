@@ -24,22 +24,12 @@ object parser extends JavaTokenParsers with PackratParsers{
       | rword("freeform")~>rword("tile")~>tilename~rword("=")~path~anchor ^^ {case tname~"="~p~a => (tname, new FreeTile(tname, p, a))}
       | rword("freeform")~>rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
       )
-      
-//  lazy val baseTile: PackratParser[(TileName, Tile)] = (
-//      rword("tile")~>tilename~rword("=")~path~edge ^^ {case tname~"="~u~e => (tname, new BaseTile(tname, u, e))}
-//      | rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~u => (tname, new  BaseTile(tname, u, ""))}
-//      )
-      
+         
   lazy val edge: PackratParser[String] = (
       rword("{")~>rword("edge")~>rword("=")~>path~rword("}") ^^ {case p~"}" => p}
       | failure("A proper edge definition was not supplied")
       )
-      
-//  lazy val freeTile: PackratParser[(TileName, Tile)] = (
-//      rword("freeform")~>rword("tile")~>tilename~rword("=")~path~anchor ^^ {case tname~"="~p~a => (tname, new FreeTile(tname, p, a))}
-//      | rword("freeform")~>rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
-//      )
-  
+
   lazy val anchor: PackratParser[Point] = (
       rword("{")~>rword("anchor")~>rword("=")~>point~rword("}") ^^ {case p~"}" => p}
       | failure("A proper anchor point was not supplied")
@@ -57,9 +47,6 @@ object parser extends JavaTokenParsers with PackratParsers{
       | failure("Map specifications must come before layers and must include a width and a height")
       )
       
-  
-      
-      //TODO: Fix this?
   lazy val layer: PackratParser[Layer] = (
       rword("layer")~>wholeNumber~rword("=")~rword("{")~(instr.+)~rword("}") ^^ {case num~"="~"{"~is~"}" => new Layer(num.toInt, is)}
       )
@@ -100,9 +87,7 @@ object parser extends JavaTokenParsers with PackratParsers{
       rword("origin")~>rword("=")~>originKeyword ^^ {case key => key}
       | failure("Improper origin specification")
       )
-      
-      
-      //TODO: Fix this
+       
   lazy val originKeyword: PackratParser[Origin] = ( //ident ^^^ topLeft
       "bottomLeft" ^^^ bottomLeft
       | "topLeft" ^^^ topLeft

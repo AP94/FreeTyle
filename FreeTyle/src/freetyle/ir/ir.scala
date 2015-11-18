@@ -1,4 +1,5 @@
 package freetyle.ir
+
 import scala.collection.mutable
 import util.control.Breaks._
 import scala.language.postfixOps

@@ -12,16 +12,20 @@ import freetyle.semantics._
  * @author apinson
  */
 object tilemap extends App{
-    for (ln <- io.Source.stdin.getLines) println(ln)
-    val mapOpt = args(0)
+    //for (ln <- io.Source.stdin.getLines) println(ln)
+    // RUNNING in project directory (inner FreeTyle)
+    // you MUST supply a .txt file.
+    val mapOpt = "src/Map1.txt"
+//args(0)
     mapOpt match {
       case mapFile =>{
         val mapCode = io.Source.fromFile(mapFile).mkString
+        println(mapCode)
         parser(mapCode) match {
           case parser.Success(ast, _) =>
             semantics.loadAST(ast)
           // If the parser fails, do error handling here
-          case _ => null
+          case parser.Failure(message, _) => println(message)
         }
       }
     }

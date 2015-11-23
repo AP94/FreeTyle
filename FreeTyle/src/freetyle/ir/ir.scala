@@ -18,8 +18,7 @@ class Point(xCoord: Int, yCoord: Int) {
 }
 
 /** 
- *  Tiles: Basic tiles are for tiling; presumably, they can be repeated.
- *   Basic tiles also may have edges, while freeform tiles cannot.
+ *  TODO: comment this
  */
 
 class Tile(tileName: TileName, url: String) {
@@ -27,6 +26,9 @@ class Tile(tileName: TileName, url: String) {
   val file = new java.io.File(url)
 }
 
+/**
+ * TODO: comment this
+ */
 class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(tileName, url) {
   
   if (edgeUrl == "") {
@@ -37,9 +39,7 @@ class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(ti
 }
 
 /**
- * Freeform tiles don't extend from Tile; their functionality is separate
- * Freeform tiles always have an anchorPoint; the standard is the top left of the image file
- * Freeform tiles never have an edge.
+ * TODO: comment this
  */
 class FreeTile(tileName: TileName, url: String, anchorPoint: Point) extends Tile(tileName, url) {
   val anchor = anchorPoint
@@ -63,7 +63,7 @@ class Instr(t: TileName){
 }
 
 /**
- * Areas are (currently) specified by right angles and will be filled by a specified tile.
+ * TODO: comment this
  */
 //TODO: add shapes
 class Area(t: TileName, pointPairs: List[(Point, Point)]) extends Instr(t){
@@ -75,8 +75,7 @@ class PlacePoint(t: TileName, p: List[Point]) extends Instr(t){
 }
 
 /**
- * Layers contain areas to be tiled and/or a list of FreeTiles and where to place them.
- * Layer precedence is given by a number, where the highest number specifies the topmost layer.
+ * TODO: comment this
  */
 class Layer(prec: LayerNum, is: List[Instr]) {
   val precedence = prec
@@ -119,7 +118,7 @@ class Layer(prec: LayerNum, is: List[Instr]) {
 }
 
 /**
- * Maps are given a set size and name and are composed of layers. The origin specifies the orientation of the map.
+ * TODO: comment this
  */
 class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
   val width = w
@@ -156,6 +155,11 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
     }
 }
 
+/**
+ * The table has all possible tiles that can be used to build the map.
+ * If two tiles are assigned to the same name, an "error" tile is generated,
+ * which will be check in semantics and throw an error.
+ */
 class Table(list: List[(TileName, Tile)]) {
   val hash = new mutable.HashMap[TileName, Tile]
   for ((tileName, tile) <- list) {
@@ -167,7 +171,12 @@ class Table(list: List[(TileName, Tile)]) {
   }
     
 }
-
+/**
+ * The AST has three main components:
+ *    a table of tiles (for the map construction to use)
+ *    the map object itself
+ *    and a list of "generate" calls (this will probably either be generate the normal map, debug map, or both)
+ */
 class AST(tList: List[(TileName, Tile)], m: Map, gens: List[(MapType, String)]) {
   val tileTable = new Table(tList)
   val map = m

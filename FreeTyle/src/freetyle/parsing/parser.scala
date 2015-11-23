@@ -12,20 +12,43 @@ object parser extends JavaTokenParsers with PackratParsers{
   def apply(s: String): ParseResult[AST] = parseAll(file, s)
 
   lazy val file: PackratParser[AST] = (
-      (tile.+)~map~(generates.+) ^^ {case ts~m~gs => new AST(ts, m, gs)}
-      | failure("Expected one or more tile specifications")<~map~(generates.+)
-      | (tile.+)~>failure("Expected a map specification")<~(generates.+)
-      | failure("File needs to have one or more tiles and a map specified")
+      (tile3.+)~map~(generates.+) ^^ {case ts~m~gs => new AST(ts, m, gs)}
+//      | failure("Expected one or more tile specifications")<~map~(generates.+)
+//      | (tile.+)~>failure("Expected a map specification")<~(generates.+)
+//      | failure("File needs to have one or more tiles and a map specified")
       )
 
   lazy val tile: PackratParser[(TileName, Tile)] = (
+      tile1 ^^ {case returnval => returnval}
+      | tile2 ^^ {case returnval => returnval}
+      | tile3 ^^ {case returnval => returnval}
+      | tile4 ^^ {case returnval => returnval}
+//      rword("tile")~>tilename~rword("=")~path~edge ^^ {case tname~"="~u~e => (tname, new BaseTile(tname, u, e))}
+//      | rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~u => (tname, new  BaseTile(tname, u, ""))}
+//      | rword("freeform")~>rword("tile")~>tilename~rword("=")~path~anchor ^^ {case tname~"="~p~a => (tname, new FreeTile(tname, p, a))}
+//      | rword("freeform")~>rword("tile")~>ident~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
+//      | failure("Improper tile definition")
+      )// withFailureMessage("FAIL AT TILE")
+      
+      
+  lazy val tile1: PackratParser [(TileName, Tile)] = (
       rword("tile")~>tilename~rword("=")~path~edge ^^ {case tname~"="~u~e => (tname, new BaseTile(tname, u, e))}
-      | rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~u => (tname, new  BaseTile(tname, u, ""))}
-      | rword("freeform")~>rword("tile")~>tilename~rword("=")~path~anchor ^^ {case tname~"="~p~a => (tname, new FreeTile(tname, p, a))}
-      | rword("freeform")~>rword("tile")~>ident~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
-      | failure("Improper tile definition")
-      ) withFailureMessage("FAIL AT TILE")
+      ) withFailureMessage("FAIL AT tile1")
+      
+  lazy val tile2: PackratParser [(TileName, Tile)] = (
+      rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~u => (tname, new  BaseTile(tname, u, ""))}
+      ) withFailureMessage("FAIL AT tile2")
+      
+      lazy val tile4: PackratParser [(TileName, Tile)] = (
+      rword("freeform")~>rword("tile")~>tilename~rword("=")~path~anchor ^^ {case tname~"="~p~a => (tname, new FreeTile(tname, p, a))}
+      ) withFailureMessage("FAIL AT tile4")
+      
+      lazy val tile3: PackratParser [(TileName, Tile)] = (
+      rword("freeform")~>rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
+      ) //withFailureMessage("FAIL AT tile3")
 
+      
+      
   lazy val edge: PackratParser[String] = (
       rword("{")~>rword("edge")~>rword("=")~>path~rword("}") ^^ {case p~"}" => p}
       | failure("A proper edge definition was not supplied")
@@ -106,8 +129,8 @@ object parser extends JavaTokenParsers with PackratParsers{
       | failure("Improper point definition")
       )
 
-  def tilename: Parser[TileName] = ident
-  def path: Parser[String] = ident
-  def filename: Parser[String] = ident
+  def tilename: Parser[TileName] = ident withFailureMessage("fail at Tilename")
+  def path: Parser[String] = ident withFailureMessage("fail at PATH")
+  def filename: Parser[String] = ident withFailureMessage("fail at Filename")
 
 }

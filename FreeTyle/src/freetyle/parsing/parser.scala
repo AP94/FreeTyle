@@ -44,7 +44,8 @@ object parser extends JavaTokenParsers with PackratParsers{
       ) withFailureMessage("FAIL AT tile4")
       
       lazy val tile3: PackratParser [(TileName, Tile)] = (
-      rword("freeform")~>rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
+      rword("freeform tile water =")~>path ^^ {case p => ("water", new FreeTile("water", p, new Point(0,0)))}
+          //rword("freeform")~>rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
       ) //withFailureMessage("FAIL AT tile3")
 
       

@@ -18,16 +18,15 @@ class Point(xCoord: Int, yCoord: Int) {
 }
 
 /** 
- *  TODO: comment this
+ *  All tiles have a name (to be referred to by maps) and a file (to load in the image)
  */
-
 class Tile(tileName: TileName, url: String) {
   val name = tileName
   val file = new java.io.File(url)
 }
 
 /**
- * TODO: comment this
+ * Base tiles may have an edge specified
  */
 class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(tileName, url) {
   
@@ -39,7 +38,7 @@ class BaseTile(tileName: TileName, url: String, edgeUrl: String) extends Tile(ti
 }
 
 /**
- * TODO: comment this
+ * Freeform tiles have an anchorpoint; the standard is the top left of the image
  */
 class FreeTile(tileName: TileName, url: String, anchorPoint: Point) extends Tile(tileName, url) {
   val anchor = anchorPoint
@@ -48,48 +47,59 @@ class FreeTile(tileName: TileName, url: String, anchorPoint: Point) extends Tile
 /**
  * The Origin specifies how the map is oriented.
  */
-
 abstract sealed class Origin
 case object topLeft extends Origin
 case object bottomLeft extends Origin
 
+/**
+ * Map types are specified for the generate calls
+ */
 abstract sealed class MapType
 case object basic extends MapType
 case object debug extends MapType
 
-
+/**
+ * Instructions are given to either fill an area or place a freeform tile;
+ * either way, there is a tile associated with them
+ */
 class Instr(t: TileName){
   val tileName = t
 }
 
 /**
- * TODO: comment this
+ * Areas have a list of points specifying the area to fill
+ * The rect field specifies whether or not the area being filled is rectangular;
+ * if it is, filling it in is simplified
  */
-//TODO: add shapes
 class Area(t: TileName, pointList: List[Point], rectangle: Boolean) extends Instr(t){
   val rect = rectangle
   val points = pointList
   if ((points.length <= 1 || points.length > 4) && rect) {
     //ERROR: you can't have a rectangle like this
   }
-  //MAKE SURE the area has to have more than 2 points otherwise
+  //make sure the area has to have more than 2 points otherwise
   if (!rect && points.length <= 2) {
     //ERROR: you can't have a shape like this
   }
 }
 
+/**
+ * PlacePoints have a list of points specifying where to place the tile
+ */
 class PlacePoint(t: TileName, p: List[Point]) extends Instr(t){
   val points = p
 }
 
 /**
- * TODO: comment this
+ * Layers have a precedence number, where lower numbered layers are on the bottom,
+ * and a list of instructions to do for that layer
  */
 class Layer(prec: LayerNum, is: List[Instr]) {
   val precedence = prec
   val instructions = sortInstrs(is)
   
   // Sort so that the fill instructions (Area) come before the place instructions (PlacePoint)
+  // This guarantees that freeform tiles are always placed above the filled in areas
   def sortInstrs(instrs: List[Instr]): List[Instr] = {
   // Bubblesort
     if (instrs.length == 0 || instrs.length == 1) {return instrs}
@@ -116,7 +126,7 @@ class Layer(prec: LayerNum, is: List[Instr]) {
           case p: PlacePoint => null
       }
         // If we hit the beginning with j, then the list only has Areas
-        // Or the list is sorted so that all the preceeding values are Areas
+        // Or the list is sorted so that all the preceding values are Areas
         if (j == 0) {return instrs}
         i -= 1
       } while (i > 0)
@@ -126,7 +136,8 @@ class Layer(prec: LayerNum, is: List[Instr]) {
 }
 
 /**
- * TODO: comment this
+ * Map objects have the origin, specifying their orientation, width and height,
+ * and a list of layers
  */
 class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
   val width = w
@@ -134,6 +145,9 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
   val origin = orig
   val layers = layerMergeSort(lays)
   
+  /**
+   * The layers are sorted by precedence number
+   */
   def layerMergeSort (layers: List[Layer]): List[Layer] = {
       if(layers.length == 1 || layers.length == 0) {return layers}
       else {
@@ -157,7 +171,7 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
         return headB :: headA :: merge(l1.tail, l2.tail)
       }
       else {
-        //error handling for equal precedence
+        //ERROR handling for equal precedence
         return List()
       }
     }
@@ -166,7 +180,7 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
 /**
  * The table has all possible tiles that can be used to build the map.
  * If two tiles are assigned to the same name, an "error" tile is generated,
- * which will be check in semantics and throw an error.
+ * which will be checked in semantics and throw an error.
  */
 class Table(list: List[(TileName, Tile)]) {
   val hash = new mutable.HashMap[TileName, Tile]

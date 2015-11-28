@@ -19,10 +19,7 @@ object parser extends JavaTokenParsers with PackratParsers{
       )
 
   lazy val tile: PackratParser[(TileName, Tile)] = (
-      tile1 ^^ {case returnval => returnval}
-      | tile2 ^^ {case returnval => returnval}
-      | tile3 ^^ {case returnval => returnval}
-      | tile4 ^^ {case returnval => returnval}
+       tile3 ^^ {case returnval => returnval}
 //      rword("tile")~>tilename~rword("=")~path~edge ^^ {case tname~"="~u~e => (tname, new BaseTile(tname, u, e))}
 //      | rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~u => (tname, new  BaseTile(tname, u, ""))}
 //      | rword("freeform")~>rword("tile")~>tilename~rword("=")~path~anchor ^^ {case tname~"="~p~a => (tname, new FreeTile(tname, p, a))}
@@ -44,7 +41,8 @@ object parser extends JavaTokenParsers with PackratParsers{
       ) withFailureMessage("FAIL AT tile4")
       
       lazy val tile3: PackratParser [(TileName, Tile)] = (
-      rword("freeform tile water =")~>path ^^ {case p => ("water", new FreeTile("water", p, new Point(0,0)))}
+      rword("freeform")~>rword("tile")~>rword("water")~>eq~>path ^^ {case p => ("water", new FreeTile("water", p, new Point(0,0)))}
+          //rword("freeform tile water =")~>path ^^ {case p => ("water", new FreeTile("water", p, new Point(0,0)))}
           //rword("freeform")~>rword("tile")~>tilename~rword("=")~path ^^ {case tname~"="~p => (tname, new FreeTile(tname, p, new Point(0,0)))}
       ) //withFailureMessage("FAIL AT tile3")
 
@@ -79,21 +77,24 @@ object parser extends JavaTokenParsers with PackratParsers{
 
   lazy val instr: PackratParser[Instr] = (
       placeAt ^^ {case p => p}
-//      | fillArea ^^ {case f => f}
+      | fillArea ^^ {case f => f}
       )
       
-      //TODO: Add areas/shapes
+  lazy val fillArea: PackratParser[Area] = (
+      rectFill ^^ {case a => a}
+      //| regionFill {case a => a}
+      )
       
-//  lazy val fillArea: PackratParser[Area] = (
-//      
-//      )
+  lazy val rectFill: PackratParser[Area] = (
+      rword("fill")~>rword("rectangle")~>(point.+)~rword("with")~tilename ^^ {case points~"with"~tname => new Area(tname, points, true)}
+      | rword("fill")~>rword("area")~>(point.+)~rword("with")~tilename ^^ {case points~"with"~tname => new Area(tname, points, false)}
+      )
       
   lazy val placeAt: PackratParser[PlacePoint] = (
       rword("at")~>(point.+)~rword("place")~tilename ^^ {case points~"place"~tname => new PlacePoint(tname, points) }
       | failure("Improper specification of at statement")
       )
 
-      //TODO: Make generate calls optional
   lazy val generates: PackratParser[(MapType, String)] = (
       rword("generate")~>rword("map")~>rword("as")~>filename ^^ {case fname => (basic, fname)}
       | rword("generate")~>rword("debug")~>rword("map")~>rword("as")~>filename ^^ {case fname => (debug, fname)}
@@ -122,7 +123,11 @@ object parser extends JavaTokenParsers with PackratParsers{
       )   
 
   def rword(word: String): PackratParser[String] = {
-    ident filter {_ == word} withFailureMessage "Expected reserved word <" + word + ">."
+    ident filter {_ == word} //withFailureMessage "Expected reserved word <" + word + ">."
+  }
+  
+  def eq: PackratParser[String] = {
+    ident filter{_ == "="}
   }
 
   lazy val point: PackratParser[Point] = (

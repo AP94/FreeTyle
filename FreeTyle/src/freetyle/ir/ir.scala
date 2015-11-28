@@ -66,8 +66,16 @@ class Instr(t: TileName){
  * TODO: comment this
  */
 //TODO: add shapes
-class Area(t: TileName, pointPairs: List[(Point, Point)]) extends Instr(t){
-  val zones = pointPairs
+class Area(t: TileName, pointList: List[Point], rectangle: Boolean) extends Instr(t){
+  val rect = rectangle
+  val points = pointList
+  if ((points.length <= 1 || points.length > 4) && rect) {
+    //ERROR: you can't have a rectangle like this
+  }
+  //MAKE SURE the area has to have more than 2 points otherwise
+  if (!rect && points.length <= 2) {
+    //ERROR: you can't have a shape like this
+  }
 }
 
 class PlacePoint(t: TileName, p: List[Point]) extends Instr(t){
@@ -169,7 +177,6 @@ class Table(list: List[(TileName, Tile)]) {
       hash("error") = new Tile("error", "")
     }
   }
-    
 }
 /**
  * The AST has three main components:
@@ -182,4 +189,3 @@ class AST(tList: List[(TileName, Tile)], m: Map, gens: List[(MapType, String)]) 
   val map = m
   val genCalls = gens
 }
-

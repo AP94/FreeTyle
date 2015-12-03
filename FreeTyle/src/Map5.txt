@@ -1,0 +1,14 @@
+tile water = src/Water.jpg
+
+map {
+  width = 200
+  height = 200
+  origin = topLeft
+ 
+  layer 0 {
+    fill area (190, 190) (10, 190) (95, 10) with water
+  }
+}
+
+generate debug map as Map5Debug
+generate map as Map5Map

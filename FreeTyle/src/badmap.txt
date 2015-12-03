@@ -1,0 +1,15 @@
+tile water = src/Water.jpg
+
+map {
+    width = 10
+    height = 10
+    
+    layer 0 {
+        fill area (0,0) (50,50) (0,50) (50,0) with water
+    }
+    layer 1 {
+      fill rectangle (25, 25) (50, 50) with water
+    }
+}
+
+generate debug map as BADTEST

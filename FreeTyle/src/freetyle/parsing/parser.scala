@@ -99,8 +99,8 @@ object parser extends JavaTokenParsers with PackratParsers{
   lazy val generates: PackratParser[(MapType, String)] = (
       "generate"~>"map"~>"as"~>filename ^^ {case fname => (basic, fname)}
       | "generate"~>"debug"~>"map"~>"as"~>filename ^^ {case fname => (debug, fname)}
-      | failure("Improper generate call")
-      ) withFailureMessage("FAIL AT GENERATE")
+      | failure("Improper or missing generate call")
+      )
 
   /**
    * Width, height, and origin specifications

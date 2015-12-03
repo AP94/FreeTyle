@@ -1,0 +1,7 @@
+compile
+clean
+compile
+sbt build
+build
+include
+assembly

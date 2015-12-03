@@ -1,0 +1,16 @@
+tile water = src/Water.jpg
+
+map {
+    width = 250
+    height = 250
+    origin = topLeft
+
+    layer 0 {
+        fill area (30, 200) (55, 200) (155, 50) (130, 50) with water
+        fill area (155, 50) (240, 50) (226, 70) (141, 70) with water
+        fill area (120, 100) (200, 100) (185, 120) (105, 120) with water
+    }
+}
+
+generate debug map as FTileDebug
+generate map as FTileMap

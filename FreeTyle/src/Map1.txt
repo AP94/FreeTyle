@@ -13,4 +13,5 @@ map {
     }
 }
 
-generate debug map as TESTDEBUGMAP
+generate map as Map1Map
+generate debug map as Map1Debug

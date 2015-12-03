@@ -75,11 +75,11 @@ class Area(t: TileName, pointList: List[Point], rectangle: Boolean) extends Inst
   val rect = rectangle
   val points = pointList
   if ((points.length <= 1 || points.length > 4) && rect) {
-    //ERROR: you can't have a rectangle like this
+    error("A rectangle must be specified with between 2 and 4 points")
   }
   //make sure the area has to have more than 2 points otherwise
   if (!rect && points.length <= 2) {
-    //ERROR: you can't have a shape like this
+    error("Areas must be specified with more than 2 points")
   }
 }
 
@@ -171,7 +171,7 @@ class Map(w: Int, h: Int, orig: Origin, lays: List[Layer]) {
         return headB :: headA :: merge(l1.tail, l2.tail)
       }
       else {
-        //ERROR handling for equal precedence
+        error("Each layer must have a unique precedence value")
         return List()
       }
     }

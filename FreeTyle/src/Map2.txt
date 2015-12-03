@@ -1,0 +1,14 @@
+tile water = src/Water.jpg
+
+map {
+   width = 100
+   height = 100
+   origin = topLeft
+  
+   layer 0 {
+       fill rectangle (0,0) (100,100) with water
+   }
+}
+
+generate map as Map2Map
+generate debug map as Map2Debug

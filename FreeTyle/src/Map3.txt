@@ -1,0 +1,18 @@
+tile baseWater = src/Water.jpg
+freeform tile freeWater = src/Water.jpg
+
+map {
+    width = 100
+    height = 100
+    origin = topLeft
+    
+    layer 0 {
+        fill rectangle (0,0) (100,100) with baseWater
+    }
+    layer 1 {
+        at (25,25) place freeWater
+    }
+}
+
+generate debug map as Map3Debug
+generate map as Map3Map

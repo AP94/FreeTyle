@@ -28,7 +28,7 @@ private object semantics {
       if (ast.genCalls.length != 0) {
         // Check if the "error" case happened (not sure how to implement)
         if (astHash.contains("error")) {
-          //error handling
+          error("Two or more tiles assigned to the same tile name")
         } else {
           // Make the tile hashmap from the ast's tiletable
           for (tName <- astHash.keys) {
@@ -44,11 +44,18 @@ private object semantics {
         }
       }
       if (ast.map.layers.length == 0) {
-        //error handling for empty list of layers (how?)
+        //Not sure this is possible, but just in case
+        error("Map must have at least one layer")
       }
     }
    
-  
+  /**
+   * tiles: a hashmap of tilenames to buffered images
+   * tTable: a hashmap of tilenames to Tile objects from the AST
+   * tiles is used to look up and draw the images, and also ensures that
+   * even if two or more tiles are loaded from one file, only one bufferimage is generated
+   * tTable is used to look up anchorpoints and edges
+   */
     def makeMap(map: Map, tiles: tileHashMap, tTable: mutable.HashMap[TileName, Tile], mName: String) {
     val layers = map.layers
     val canvas = new BufferedImage(map.width, map.height, BufferedImage.TYPE_INT_RGB)
@@ -65,69 +72,83 @@ private object semantics {
       for(instr <- layer.instructions) {
         val tile = tiles(instr.tileName)
         
-        // Later: for clipping purposes
         val tWidth = tile.getWidth()
         val tHeight = tile.getHeight()
         
         instr match {
-          case a: freetyle.ir.Area => {
-            //assume origin is topLeft
-              var top, bottom, left, right = 0
-              for (point <- a.points) {
-                if (point.y > bottom) {
-                  bottom = point.y
-                } else {
-                  top = point.y
+          case a: freetyle.ir.Area => { 
+            tTable(instr.tileName) match {
+              case baseTile: BaseTile => {
+                //assume origin is topLeft
+                var bottom, right = 0
+                var top = map.height
+                var left = map.width
+                for (point <- a.points) {
+                  if (point.y > bottom) {
+                    bottom = point.y
+                  } 
+                  if (point.y < top) {
+                    top = point.y
+                  }
+                  if (point.x > right) {
+                    right = point.x
+                  } 
+                  if (point.x < left) {
+                    left = point.x
+                  }
                 }
-                if (point.x > left) {
-                  left = point.x
-                } else {
-                  right = point.x
-                }
-              }
-              //get the rectangle coords for the area that will contain the tiles
-              val TR = new freetyle.ir.Point(right, top)
-              val TL = new freetyle.ir.Point(left, top)
-              val BR = new freetyle.ir.Point(right, bottom)
-              val BL = new freetyle.ir.Point(left, bottom)
-            if (a.rect) {
-              //make a rectangle to clip to
-              val rect = new Rectangle(TL.x, TL.y, (TR.x-TL.x), (BR.y-TR.y))
-              val clip = new geometry.Area(rect)
-              graphics.clip(clip)
-              
-              //draw the tiles
-              for (i <- TR.x until TL.x
-                  if ((i - (TR.x))%tWidth == 0)) {
-                for (j <- TR.y until BR.y
-                  if ((j - (TR.y))%tHeight == 0)) {
-                    graphics.drawImage(tile, i, j, null)
-                }
+                
+              if (right > map.width || bottom > map.height) {
+                println("WARNING: Some areas of the map will be drawn out of bounds")
               }
               
-            } else {
-              //make a polygon object
-              var xPoints = new Array[Int](a.points.length)
-              var yPoints = new Array[Int](a.points.length)
-              var i = 0
-              for (point <- a.points) {
-                xPoints(i) = point.x
-                yPoints(i) = point.y
-                i += 1
-              }
-              val polygon = new Polygon(xPoints, yPoints, a.points.length)
-              val clip = new geometry.Area(polygon)
-              graphics.clip(clip)
+              if (a.rect) {
+                //make a rectangle to clip to
+                val rect = new Rectangle(left, top, (right-left), (bottom-top))
+                val clip = new geometry.Area(rect)
+                graphics.clip(clip)
               
-              //draw the tiles
-              for (i <- TR.x until TL.x
-                  if ((i - (TR.x))%tWidth == 0)) {
-                for (j <- TR.y until BR.y
-                  if ((j - (TR.y))%tHeight == 0)) {
-                    graphics.drawImage(tile, i, j, null)
+                //draw the tiles
+                for (i <- left until right
+                    if ((i - left)%tWidth == 0)) {
+                  for (j <- top until bottom
+                    if ((j - top)%tHeight == 0)) {
+                      graphics.drawImage(tile, i, j, tWidth, tHeight, null)
+                  }
+                }
+              
+              
+              } else {
+                //make a polygon object
+                var xPoints = new Array[Int](a.points.length)
+                var yPoints = new Array[Int](a.points.length)
+                var i = 0
+                for (point <- a.points) {
+                  xPoints(i) = point.x
+                  yPoints(i) = point.y
+                  i += 1
+                }
+                val polygon = new Polygon(xPoints, yPoints, a.points.length)
+                val clip = new geometry.Area(polygon)
+                graphics.clip(clip)
+              
+                //draw the tiles
+                for (i <- left until right
+                    if ((i - left)%tWidth == 0)) {
+                  for (j <- top until bottom
+                    if ((j - top)%tHeight == 0)) {
+                      graphics.drawImage(tile, i, j, null)
+                  }
                 }
               }
             }
+            case f: FreeTile => {
+              error("You can only fill with basic tiles")
+            }
+          }
+          
+          graphics.dispose()
+          graphics = canvas.createGraphics()
           }
            
           // Place freeform tiles
@@ -153,14 +174,14 @@ private object semantics {
                  }
               }
               case b: BaseTile => {
-                //ERROR: This is impossible
+                error("You can only place freeform tiles")
               }
             }
+          graphics.dispose()
+          graphics = canvas.createGraphics()
           }
         }
       }
-      graphics.dispose()
-      graphics = canvas.createGraphics()
     }
     graphics.dispose()
     val outputfile = new File(mName + ".png")
@@ -200,57 +221,63 @@ private object semantics {
         
         instr match {
           case a: freetyle.ir.Area => {
-            //assume origin is topLeft
-              var top, bottom, left, right = 0
-              for (point <- a.points) {
-                if (point.y > bottom) {
-                  bottom = point.y
-                } else {
-                  top = point.y
+            tTable(instr.tileName) match {
+              case baseTile: BaseTile => {
+              //assume origin is topLeft
+                var bottom, right = 0
+                var top = map.height
+                var left = map.width
+                for (point <- a.points) {
+                  if (point.y > bottom) {
+                    bottom = point.y
+                  } 
+                  if (point.y < top) {
+                    top = point.y
+                  }
+                  if (point.x > right) {
+                    right = point.x
+                  } 
+                  if (point.x < left) {
+                    left = point.x
+                  }
                 }
-                if (point.x > left) {
-                  left = point.x
-                } else {
-                  right = point.x
+                            
+              if (a.rect) {
+                //draw the rectangle
+                val rect = new geometry.Rectangle2D.Double(left, top, (right-left-1), (bottom-top-1))
+                graphics.draw(rect)
+              
+              } else {
+                //draw the polygon
+                var xPoints = new Array[Int](a.points.length)
+                var yPoints = new Array[Int](a.points.length)
+                var i = 0
+                for (point <- a.points) {
+                  xPoints(i) = point.x
+                  yPoints(i) = point.y
+                  i += 1
                 }
-              }
-              //get the rectangle coords for the area that will contain the tiles
-              val TR = new freetyle.ir.Point(right, top)
-              val TL = new freetyle.ir.Point(left, top)
-              val BR = new freetyle.ir.Point(right, bottom)
-              val BL = new freetyle.ir.Point(left, bottom)
-            if (a.rect) {
-              //draw the rectangle
-              val rect = new geometry.Rectangle2D.Double(left, top, (right-left), (bottom-top))
-              graphics.draw(rect)
+                i -= 1
               
-            } else {
-              //draw the polygon
-              var xPoints = new Array[Int](a.points.length)
-              var yPoints = new Array[Int](a.points.length)
-              var i = 0
-              xPoints(0) = a.points(0).x
-              yPoints(0) = a.points(0).y
-              for (point <- a.points) {
-                i += 1
-                xPoints(i) = point.x
-                yPoints(i) = point.y
-              }
-              
-              var line = new geometry.Line2D.Double(0,0,0,0)
-              for (j <- 1 to i) {
-                line = new geometry.Line2D.Double(xPoints(j-1), yPoints(j-1), xPoints(j), yPoints(j))
+                var line = new geometry.Line2D.Double(0,0,0,0)
+                for (j <- 1 to i) {
+                  line = new geometry.Line2D.Double(xPoints(j-1), yPoints(j-1), xPoints(j), yPoints(j))
+                  graphics.draw(line)
+                }
+                line = new geometry.Line2D.Double(xPoints(0), yPoints(0), xPoints(i), yPoints(i))
                 graphics.draw(line)
+                }
               }
-              line = new geometry.Line2D.Double(xPoints(0), yPoints(0), xPoints(i), yPoints(i))
-              graphics.draw(line)
+              case f: FreeTile => {
+                error("You can only fill with basic tiles")
+              }
             }
           }
            
           // Draw freeform tiles + mark where the anchorpoints are
           case p: PlacePoint => {
             val pointList = p.points
-            // The only way to get it to accept "anchor" is this way
+            // Check to make sure this is the proper tile type
             tTable(instr.tileName) match {
               case freeTile: FreeTile => {
                 val anchorX = freeTile.anchor.x
@@ -261,7 +288,7 @@ private object semantics {
                  // If the orientation's normal, just draw it at pos
                  if (map.origin == topLeft) {
                   for (point <- pointList) {
-                     graphics.draw(new geometry.Rectangle2D.Double(point.x, point.y, tWidth, tHeight));
+                     graphics.draw(new geometry.Rectangle2D.Double(point.x, point.y, tWidth-1, tHeight-1));
                      
                      //draw the anchorpoint 
                      val shiftedAX = point.x + anchorX
@@ -284,7 +311,7 @@ private object semantics {
                    }
               }
               case b: BaseTile => {
-                //ERROR: This is impossible
+                error("You can only place freeform tiles")
               }
             }
           }

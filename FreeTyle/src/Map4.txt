@@ -1,0 +1,20 @@
+tile water = src/Water.jpg
+
+map {
+    width = 200
+    height = 200
+    origin = topLeft
+
+    layer 0 {
+        fill rectangle (7, 166) (67, 166) (67, 26) (7, 26) with water
+    }
+    layer 1 {
+        fill rectangle (44, 55) (177, 55) (44, 77) with water
+    }
+    layer 2 {
+        fill rectangle (166, 182) (175, 24) with water
+    }
+}
+
+generate debug map as Map4Debug
+generate map as Map4Map
